@@ -16,7 +16,7 @@ class Point
 
 void divideAndConquer(Point *points, int points_length)
 {
-    if(points_length > 1)
+    if(points_length > 3)
     {
         int ha_length = points_length/2;
         Point ha[ha_length];
@@ -54,11 +54,14 @@ void divideAndConquer(Point *points, int points_length)
 
         cout<<endl;
         divideAndConquer(hb,hb_length);
+
+        /* Merge Hull HA and HB,
+           compute Upper and Lower Tangents
+           discard all points between these to tangents */
     }
     else
     {
-        cout<<endl;
-        points[0].print();
+        /* Compute Hull */
     }
 
 
