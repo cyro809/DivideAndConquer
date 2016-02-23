@@ -1,4 +1,5 @@
 #include <iostream>
+#include <utility>
 
 #define above(P,Vi,Vj)  (isLeft(P,Vi,Vj) > 0)
 #define below(P,Vi,Vj)  (isLeft(P,Vi,Vj) < 0)
@@ -107,26 +108,66 @@ int Ltangent_PointPolyC( Point P, int n, Point* V )
     }
 }
 
-int *lowerTangent(Point *ha, Point* hb, int ha_length, int hb_length)
+std::pair<int,int> lowerTangent(Point *ha, Point* hb, int ha_length, int hb_length)
+{
+    int a;
+    cout<<"kjakjakaja"<<endl;
+    a = Ltangent_PointPolyC(hb[0], ha_length, ha);
+    cout<<"a = "<<a<<endl;
+    int b;
+    b = Rtangent_PointPolyC(ha[a], hb_length, hb);
+    cout<<"b = "<<b<<endl;
+    bool done = false;
+    int c = 0;
+
+    while(!done || c < 50)
+    {
+        done = true;
+        cout<<"inicio"<<endl;
+        while(isLeft(hb[b], ha[a], ha[a-1]) >= 0)
+        {
+            a--;
+            cout<<"soma a"<<endl;
+        }
+        while(isLeft(ha[a], hb[b], hb[b+1]) <= 0)
+        {
+            b++;
+            done = false;
+            cout<<"diminui b"<<endl;
+        }
+        c++;
+        cout<<"fim"<<endl;
+    }
+    //int idxs[] = {a,b};
+    std::pair<int,int> idxs(a,b);
+    return idxs;
+}
+
+std::pair<int,int> higherTangent(Point *ha, Point* hb, int ha_length, int hb_length)
 {
     int a;
     a = Rtangent_PointPolyC(hb[0], ha_length, ha);
     int b;
     b = Ltangent_PointPolyC(ha[a], hb_length, hb);
     bool done = false;
-
-    while(!done)
+    int c = 0;
+    while(!done || c < 50)
     {
         done = true;
+
         while(isLeft(hb[b], ha[a], ha[a+1]) <= 0)
         {
             a++;
+
         }
         while(isLeft(ha[a], hb[b], hb[b-1]) >= 0)
         {
             b--;
             done = false;
+
         }
+        c++;
+
     }
     int idxs[] = {a,b};
     return idxs;
@@ -207,13 +248,16 @@ int main()
     //int length = 5;
     //divideAndConquer(ps,length);
 
-    Point ha[] = {Point(1,1), Point(2,3), Point(3,3), Point(2,2)};
-    Point hb[] = {Point(5,1), Point(4,2), Point(6,3), Point(7,2)};
-    int ha_length = 4;
-    int hb_length = 4;
-    int *tangents_indexes;
-    tangents_indexes = lowerTangent(ha,hb,ha_length, hb_length);
-    ha[tangents_indexes[0]].print();
-    hb[tangents_indexes[1]].print();
+    Point ha[] = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(1,1)};
+    Point hb[] = {Point(3,1), Point(4,3), Point(5,4), Point(6,2), Point(3,1)};
+    int ha_length = 5;
+    int hb_length = 5;
+
+    std::pair<int,int> tangents_indexes = lowerTangent(ha,hb,ha_length, hb_length);
+
+    cout<<"t_i [0] = "<<tangents_indexes.first<<endl;
+    cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
+    ha[tangents_indexes.first].print();
+    hb[tangents_indexes.second].print();
     return 0;
 }
