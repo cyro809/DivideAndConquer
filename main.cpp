@@ -75,18 +75,13 @@ int Ltangent_PointPolyC( Point P, int n, Point* V )
     // test if V[0] is a local minimum
     if (above(P, V[n-1], V[0]) && !below(P, V[1], V[0]))
         return 0;               // V[0] is the minimum tangent point
-    int co = 0;
+
     for (a=0, b=n;;) {          // start chain = [0,n] with V[n] = V[0]
         c = (a + b) / 2;        // midpoint of [a,b], and 0<c<n
         dnC = below(P, V[c+1], V[c]);
-        cout<<"above = "<<above(P, V[c-1], V[c])<<endl;
-        cout<<"dnc = "<<dnC<<endl;
         if (above(P, V[c-1], V[c]) && !dnC)
             return c;          // V[c] is the minimum tangent point
-        else if(co > 30)
-            return 0;
 
-        co++;
         // no min yet, so continue with the binary search
         // pick one of the two subchains [a,c] or [c,b]
         dnA = below(P, V[a+1], V[a]);
@@ -116,32 +111,25 @@ int Ltangent_PointPolyC( Point P, int n, Point* V )
 std::pair<int,int> lowerTangent(Point *ha, Point* hb, int ha_length, int hb_length)
 {
     int a;
-    cout<<"kjakjakaja"<<endl;
     a = Ltangent_PointPolyC(hb[0], ha_length, ha);
-    cout<<"a = "<<a<<endl;
     int b;
     b = Rtangent_PointPolyC(ha[a], hb_length, hb);
-    cout<<"b = "<<b<<endl;
     bool done = false;
-    int c = 0;
 
-    while(!done || c < 50)
+    while(!done)
     {
         done = true;
-        cout<<"inicio"<<endl;
         while(isLeft(hb[b], ha[a], ha[a-1]) >= 0)
         {
             a--;
-            cout<<"soma a"<<endl;
+            if(a == 0) a = ha_length - 1;
         }
         while(isLeft(ha[a], hb[b], hb[b+1]) <= 0)
         {
             b++;
+            if(b == hb_length - 1) b = 0;
             done = false;
-            cout<<"diminui b"<<endl;
         }
-        c++;
-        cout<<"fim"<<endl;
     }
     //int idxs[] = {a,b};
     std::pair<int,int> idxs(a,b);
@@ -151,31 +139,26 @@ std::pair<int,int> lowerTangent(Point *ha, Point* hb, int ha_length, int hb_leng
 std::pair<int,int> higherTangent(Point *ha, Point* hb, int ha_length, int hb_length)
 {
     int a;
-    cout<<"antes a"<<endl;
     a = Rtangent_PointPolyC(hb[0], ha_length, ha);
-    cout<<"a = "<<a<<endl;
     int b;
     b = Ltangent_PointPolyC(ha[a], hb_length, hb);
-    cout<<"b = "<<b<<endl;
     bool done = false;
-    int c = 0;
-    while(!done || c < 50)
+    while(!done)
     {
         done = true;
 
         while(isLeft(hb[b], ha[a], ha[a+1]) <= 0)
         {
             a++;
-
+            if (a == ha_length - 1) a = 0;
         }
         while(isLeft(ha[a], hb[b], hb[b-1]) >= 0)
         {
             b--;
+            if (b == 0) b = hb_length - 1;
             done = false;
 
         }
-        c++;
-
     }
     std::pair<int,int> idxs(a,b);
     return idxs;
@@ -256,10 +239,10 @@ int main()
     //int length = 5;
     //divideAndConquer(ps,length);
 
-    Point ha[] = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(1,1)};
-    Point hb[] = {Point(5,1), Point(6,3), Point(7,4), Point(8,2), Point(5,1)};
-    int ha_length = 5;
-    int hb_length = 5;
+    Point ha[] = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
+    Point hb[] = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2), Point(5,1)};
+    int ha_length = 6;
+    int hb_length = 6;
 
     std::pair<int,int> tangents_indexes = higherTangent(ha,hb,ha_length, hb_length);
 
