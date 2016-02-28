@@ -24,155 +24,71 @@ float isLeft (Point P0, Point P1, Point P2)
     return (P1.x - P0.x)*(P2.y - P0.y) - (P2.x - P0.x)*(P1.y - P0.y);
 }
 
-int Rtangent_PointPolyC( Point P, int n, Point* V )
+vector<Point> divideAndConquer(vector<Point> points)
 {
-    // use binary search for large convex polygons
-    int     a, b, c;            // indices for edge chain endpoints
-    int     upA, dnC;           // test for up direction of edges a and c
-
-    // rightmost tangent = maximum for the isLeft() ordering
-    // test if V[0] is a local maximum
-    if (below(P, V[1], V[0]) && !above(P, V[n-1], V[0]))
-        return 0;               // V[0] is the maximum tangent point
-
-    for (a=0, b=n;;) {          // start chain = [0,n] with V[n]=V[0]
-        c = (a + b) / 2;        // midpoint of [a,b], and 0<c<n
-        dnC = below(P, V[c+1], V[c]);
-        if (dnC && !above(P, V[c-1], V[c]))
-            return c;          // V[c] is the maximum tangent point
-
-        // no max yet, so continue with the binary search
-        // pick one of the two subchains [a,c] or [c,b]
-        upA = above(P, V[a+1], V[a]);
-        if (upA) {                       // edge a points up
-            if (dnC)                         // edge c points down
-                 b = c;                           // select [a,c]
-            else {                           // edge c points up
-                 if (above(P, V[a], V[c]))     // V[a] above V[c]
-                     b = c;                       // select [a,c]
-                 else                          // V[a] below V[c]
-                     a = c;                       // select [c,b]
-            }
-        }
-        else {                           // edge a points down
-            if (!dnC)                        // edge c points up
-                 a = c;                           // select [c,b]
-            else {                           // edge c points down
-                 if (below(P, V[a], V[c]))     // V[a] below V[c]
-                     b = c;                       // select [a,c]
-                 else                          // V[a] above V[c]
-                     a = c;                       // select [c,b]
-            }
-        }
-    }
-}
-
-int Ltangent_PointPolyC( Point P, int n, Point* V )
-{
-    // use binary search for large convex polygons
-    int     a, b, c;            // indices for edge chain endpoints
-    int     dnA, dnC;           // test for down direction of edges a and c
-
-    // leftmost tangent = minimum for the isLeft() ordering
-    // test if V[0] is a local minimum
-    if (above(P, V[n-1], V[0]) && !below(P, V[1], V[0]))
-        return 0;               // V[0] is the minimum tangent point
-
-    for (a=0, b=n;;) {          // start chain = [0,n] with V[n] = V[0]
-        c = (a + b) / 2;        // midpoint of [a,b], and 0<c<n
-        dnC = below(P, V[c+1], V[c]);
-        if (above(P, V[c-1], V[c]) && !dnC)
-            return c;          // V[c] is the minimum tangent point
-
-        // no min yet, so continue with the binary search
-        // pick one of the two subchains [a,c] or [c,b]
-        dnA = below(P, V[a+1], V[a]);
-        if (dnA) {                       // edge a points down
-            if (!dnC)                        // edge c points up
-                 b = c;                           // select [a,c]
-            else {                           // edge c points down
-                 if (below(P, V[a], V[c]))     // V[a] below V[c]
-                     b = c;                       // select [a,c]
-                 else                          // V[a] above V[c]
-                     a = c;                       // select [c,b]
-            }
-        }
-        else {                           // edge a points up
-            if (dnC)                         // edge c points down
-                 a = c;                           // select [c,b]
-            else {                           // edge c points up
-                 if (above(P, V[a], V[c]))     // V[a] above V[c]
-                     b = c;                       // select [a,c]
-                 else                          // V[a] below V[c]
-                     a = c;                       // select [c,b]
-            }
-        }
-    }
-}
-
-std::pair<int,int> lowerTangent(Point *ha, Point* hb, int ha_length, int hb_length)
-{
-    int a;
-    a = Ltangent_PointPolyC(hb[0], ha_length, ha);
-    int b;
-    b = Rtangent_PointPolyC(ha[a], hb_length, hb);
-    bool done = false;
-
-    while(!done)
+    int lower_tangent_points[2];
+    if(points.size() > 3)
     {
-        done = true;
-        while(isLeft(hb[b], ha[a], ha[a-1]) >= 0)
-        {
-            a--;
-            if(a == 0) a = ha_length - 1;
-        }
-        while(isLeft(ha[a], hb[b], hb[b+1]) <= 0)
-        {
-            b++;
-            if(b == hb_length - 1) b = 0;
-            done = false;
-        }
-    }
-    //int idxs[] = {a,b};
-    std::pair<int,int> idxs(a,b);
-    return idxs;
-}
+        int ha_length = points.size()/2;
+        Point ha[ha_length];
 
-std::pair<int,int> higherTangent(Point *ha, Point* hb, int ha_length, int hb_length)
-{
-    int a;
-    a = Rtangent_PointPolyC(hb[0], ha_length, ha);
-    int b;
-    b = Ltangent_PointPolyC(ha[a], hb_length, hb);
-    bool done = false;
-    while(!done)
+        Point *hb;
+        int hb_length = points.size()/2;
+
+        Point *convex_hull;
+
+        if(points.size()%2 == 0)
+        {
+            hb = new Point[hb_length];
+        }
+        else
+        {
+            hb_length++;
+            hb = new Point[hb_length];
+        }
+
+
+        int b = 0;
+        for(int i=0;i<points.size();i++)
+        {
+            if(i < points.size()/2)
+            {
+                ha[i] = points[i];
+                ha[i].print();
+            }
+            else
+            {
+                hb[b] = points[i];
+                hb[b].print();
+                b++;
+            }
+        }
+        cout<<endl;
+        divideAndConquer(ha,ha_length);
+
+        cout<<endl;
+        divideAndConquer(hb,hb_length);
+        /* Merge Hull HA and HB,
+           compute Upper and Lower Tangents
+           discard all points between these to tangents */
+    }
+    else
     {
-        done = true;
-
-        while(isLeft(hb[b], ha[a], ha[a+1]) <= 0)
-        {
-            a++;
-            if (a == ha_length - 1) a = 0;
-        }
-        while(isLeft(ha[a], hb[b], hb[b-1]) >= 0)
-        {
-            b--;
-            if (b == 0) b = hb_length - 1;
-            done = false;
-
-        }
+        // return points;
     }
-    std::pair<int,int> idxs(a,b);
-    return idxs;
+
+
+
 }
 
-Point *mergeHull(Point *ha, Point* hb, int ha_length, int hb_length)
+vector<Point> mergeHull(vector<Point> ha, vector<Point> hb)
 {
-    Point *merged_hull;
-    std::pair<int,int> high_tangent_indexes = higherTangent(ha,hb,ha_length, hb_length);
-    std::pair<int,int> low_tangent_indexes = lowerTangent(ha,hb,ha_length, hb_length);
-    Point extreme_ha_point = ha[0];
-    Point extreme_hb_point = hb[0];
+    vector<Point> hull;
+    vector<Point> merged_hull;
+    hull.reserve( ha.size() + hb.size()); // preallocate memory
+    hull.insert( hull.end(), ha.begin(), ha.end() );
+    hull.insert( hull.end(), hb.begin(), hb.end() );
+    merged_hull = convex_hull(hull);
 
     return merged_hull;
 }
@@ -201,76 +117,12 @@ vector<Point> convex_hull(vector<Point> P)
 	return H;
 }
 
-void divideAndConquer(Point *points, int points_length)
-{
-    int lower_tangent_points[2];
-    if(points_length > 3)
-    {
-        int ha_length = points_length/2;
-        Point ha[ha_length];
-
-        Point *hb;
-        int hb_length = points_length/2;
-
-        Point *convex_hull;
-
-        if(points_length%2 == 0)
-        {
-            hb = new Point[hb_length];
-        }
-        else
-        {
-            hb_length++;
-            hb = new Point[hb_length];
-        }
-
-
-        int b = 0;
-        for(int i=0;i<points_length;i++)
-        {
-            if(i < points_length/2)
-            {
-                ha[i] = points[i];
-                ha[i].print();
-            }
-            else
-            {
-                hb[b] = points[i];
-                hb[b].print();
-                b++;
-            }
-        }
-        cout<<endl;
-        divideAndConquer(ha,ha_length);
-
-        cout<<endl;
-        divideAndConquer(hb,hb_length);
-        //lower_tangent_points = lowerTangent(ha,hb,ha_length);
-        // convex_hull = mergeHull(ha,hb,ha_length);
-        /* Merge Hull HA and HB,
-           compute Upper and Lower Tangents
-           discard all points between these to tangents */
-    }
-    else
-    {
-        // return points;
-    }
-
-
-
-}
-
 int main()
 {
-    //Point ps[] = {Point(1,2), Point(2,2), Point(2,1), Point(1,1), Point(3,3)};
-    //int length = 5;
-    //divideAndConquer(ps,length);
-
     std::vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,3), Point(4,2)};
     std::vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
     std::vector<Point> h;
-    int ha_length = 5;
-    int hb_length = 5;
+
     h.reserve( ha.size() + hb.size()); // preallocate memory
     h.insert( h.end(), ha.begin(), ha.end() );
     h.insert( h.end(), hb.begin(), hb.end() );
@@ -280,12 +132,5 @@ int main()
     {
         convex[i].print();
     }
-
-    //std::pair<int,int> tangents_indexes = higherTangent(ha,hb,ha_length, hb_length);
-
-    //cout<<"t_i [0] = "<<tangents_indexes.first<<endl;
-    //cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
-    //ha[tangents_indexes.first].print();
-    //hb[tangents_indexes.second].print();
     return 0;
 }
