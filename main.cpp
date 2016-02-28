@@ -1,7 +1,6 @@
 #include <iostream>
 #include <utility>
 #include <vector>
-#include <algorithm>
 
 #define above(P,Vi,Vj)  (isLeft(P,Vi,Vj) > 0)
 #define below(P,Vi,Vj)  (isLeft(P,Vi,Vj) < 0)
@@ -24,78 +23,150 @@ float isLeft (Point P0, Point P1, Point P2)
     return (P1.x - P0.x)*(P2.y - P0.y) - (P2.x - P0.x)*(P1.y - P0.y);
 }
 
-vector<Point> divideAndConquer(vector<Point> points)
+int Rtangent_PointPolyC( Point P, int n, vector<Point> V )
 {
-    int lower_tangent_points[2];
-    if(points.size() > 3)
-    {
-        int ha_length = points.size()/2;
-        Point ha[ha_length];
+    // use binary search for large convex polygons
+    int     a, b, c;            // indices for edge chain endpoints
+    int     upA, dnC;           // test for up direction of edges a and c
 
-        Point *hb;
-        int hb_length = points.size()/2;
+    // rightmost tangent = maximum for the isLeft() ordering
+    // test if V[0] is a local maximum
+    if (below(P, V[1], V[0]) && !above(P, V[n-1], V[0]))
+        return 0;               // V[0] is the maximum tangent point
 
-        Point *convex_hull;
+    for (a=0, b=n;;) {          // start chain = [0,n] with V[n]=V[0]
+        c = (a + b) / 2;        // midpoint of [a,b], and 0<c<n
+        dnC = below(P, V[c+1], V[c]);
+        if (dnC && !above(P, V[c-1], V[c]))
+            return c;          // V[c] is the maximum tangent point
 
-        if(points.size()%2 == 0)
-        {
-            hb = new Point[hb_length];
-        }
-        else
-        {
-            hb_length++;
-            hb = new Point[hb_length];
-        }
-
-
-        int b = 0;
-        for(int i=0;i<points.size();i++)
-        {
-            if(i < points.size()/2)
-            {
-                ha[i] = points[i];
-                ha[i].print();
-            }
-            else
-            {
-                hb[b] = points[i];
-                hb[b].print();
-                b++;
+        // no max yet, so continue with the binary search
+        // pick one of the two subchains [a,c] or [c,b]
+        upA = above(P, V[a+1], V[a]);
+        if (upA) {                       // edge a points up
+            if (dnC)                         // edge c points down
+                 b = c;                           // select [a,c]
+            else {                           // edge c points up
+                 if (above(P, V[a], V[c]))     // V[a] above V[c]
+                     b = c;                       // select [a,c]
+                 else                          // V[a] below V[c]
+                     a = c;                       // select [c,b]
             }
         }
-        cout<<endl;
-        divideAndConquer(ha,ha_length);
-
-        cout<<endl;
-        divideAndConquer(hb,hb_length);
-        /* Merge Hull HA and HB,
-           compute Upper and Lower Tangents
-           discard all points between these to tangents */
+        else {                           // edge a points down
+            if (!dnC)                        // edge c points up
+                 a = c;                           // select [c,b]
+            else {                           // edge c points down
+                 if (below(P, V[a], V[c]))     // V[a] below V[c]
+                     b = c;                       // select [a,c]
+                 else                          // V[a] above V[c]
+                     a = c;                       // select [c,b]
+            }
+        }
     }
-    else
+}
+
+int Ltangent_PointPolyC( Point P, int n, vector<Point> V )
+{
+    // use binary search for large convex polygons
+    int     a, b, c;            // indices for edge chain endpoints
+    int     dnA, dnC;           // test for down direction of edges a and c
+
+    // leftmost tangent = minimum for the isLeft() ordering
+    // test if V[0] is a local minimum
+    if (above(P, V[n-1], V[0]) && !below(P, V[1], V[0]))
+        return 0;               // V[0] is the minimum tangent point
+
+    for (a=0, b=n;;) {          // start chain = [0,n] with V[n] = V[0]
+        c = (a + b) / 2;        // midpoint of [a,b], and 0<c<n
+        dnC = below(P, V[c+1], V[c]);
+        if (above(P, V[c-1], V[c]) && !dnC)
+            return c;          // V[c] is the minimum tangent point
+
+        // no min yet, so continue with the binary search
+        // pick one of the two subchains [a,c] or [c,b]
+        dnA = below(P, V[a+1], V[a]);
+        if (dnA) {                       // edge a points down
+            if (!dnC)                        // edge c points up
+                 b = c;                           // select [a,c]
+            else {                           // edge c points down
+                 if (below(P, V[a], V[c]))     // V[a] below V[c]
+                     b = c;                       // select [a,c]
+                 else                          // V[a] above V[c]
+                     a = c;                       // select [c,b]
+            }
+        }
+        else {                           // edge a points up
+            if (dnC)                         // edge c points down
+                 a = c;                           // select [c,b]
+            else {                           // edge c points up
+                 if (above(P, V[a], V[c]))     // V[a] above V[c]
+                     b = c;                       // select [a,c]
+                 else                          // V[a] below V[c]
+                     a = c;                       // select [c,b]
+            }
+        }
+    }
+}
+
+std::pair<int,int> lowerTangent(vector<Point> ha, vector<Point> hb)
+{
+    int a = ha.size()-2;
+    //a = Ltangent_PointPolyC(hb[0], ha.size(), ha);
+    int b = 0;
+    //b = Rtangent_PointPolyC(ha[a], hb.size(), hb);
+    bool done = false;
+
+    while(!done)
     {
-        // return points;
+        done = true;
+        while(isLeft(hb[b], ha[a], ha[a-1]) >= 0)
+        {
+            a--;
+            if(a == 0) a = ha.size() - 1;
+        }
+        while(isLeft(ha[a], hb[b], hb[b+1]) <= 0)
+        {
+            b++;
+            if(b == hb.size() - 1) b = 0;
+            done = false;
+        }
     }
-
-
-
+    //int idxs[] = {a,b};
+    std::pair<int,int> idxs(a,b);
+    return idxs;
 }
 
-vector<Point> mergeHull(vector<Point> ha, vector<Point> hb)
+std::pair<int,int> higherTangent(vector<Point> ha, vector<Point> hb)
 {
-    vector<Point> hull;
-    vector<Point> merged_hull;
-    hull.reserve( ha.size() + hb.size()); // preallocate memory
-    hull.insert( hull.end(), ha.begin(), ha.end() );
-    hull.insert( hull.end(), hb.begin(), hb.end() );
-    merged_hull = convex_hull(hull);
+    int a;
+    a = Rtangent_PointPolyC(hb[0], ha.size(), ha);
+    int b;
+    b = Ltangent_PointPolyC(ha[a], hb.size(), hb);
+    bool done = false;
+    while(!done)
+    {
+        done = true;
 
-    return merged_hull;
+        while(isLeft(hb[b], ha[a], ha[a+1]) <= 0)
+        {
+            a++;
+            if (a == ha.size() - 1) a = 0;
+        }
+        while(isLeft(ha[a], hb[b], hb[b-1]) >= 0)
+        {
+            b--;
+            if (b == 0) b = hb.size() - 1;
+            done = false;
+        }
+    }
+    std::pair<int,int> idxs(a,b);
+    return idxs;
 }
 
-vector<Point> convex_hull(vector<Point> P)
+vector<Point> convexHull(vector<Point> P)
 {
-	int n = P.size(), k = 0;
+    int n = P.size(), k = 0;
 	vector<Point> H(2*n);
 
 	// Sort points lexicographically
@@ -117,20 +188,88 @@ vector<Point> convex_hull(vector<Point> P)
 	return H;
 }
 
+vector<Point> mergeHull(vector<Point> ha, vector<Point> hb)
+{
+    std::vector<Point> hull;
+    hull.reserve( ha.size() + hb.size()); // preallocate memory
+
+    hull.insert( hull.end(), ha.begin(), ha.end() );
+    hull.insert( hull.end(), hb.begin(), hb.end() );
+
+    std::vector<Point> merged_hull = convexHull(hull);
+    merged_hull.pop_back();
+    return merged_hull;
+}
+
+
+vector<Point> divideAndConquer(vector<Point> points)
+{
+    vector<Point> HA;
+    vector<Point> HB;
+    vector<Point> S;
+
+    if(points.size() > 3)
+    {
+        int max_x = points[points.size()-1].x;
+        int min_x = points[0].x;
+        int splitter = (max_x + min_x)/2;
+
+        for(int i=0;i<points.size();i++)
+        {
+            if(points[i].x < splitter)
+            {
+                HA.push_back(points[i]);
+            }
+            else
+            {
+                HB.push_back(points[i]);
+            }
+        }
+
+
+        HA = divideAndConquer(HA);
+        cout<<"HA:"<<endl;
+        for(int i=0;i<HA.size();i++) HA[i].print();
+
+        HB = divideAndConquer(HB);
+        cout<<"HB:"<<endl;
+        for(int i=0;i<HB.size();i++) HB[i].print();
+        S = mergeHull(HA,HB);
+        cout<<endl;
+    }
+    else
+    {
+        cout<<"S:"<<endl;
+        for(int i=0;i<points.size();i++) points[i].print();
+        cout<<endl;
+        return points;
+    }
+
+
+
+}
+
 int main()
 {
-    std::vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,3), Point(4,2)};
-    std::vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
-    std::vector<Point> h;
+    /* TESTE PARA DIVIDE AND CONQUER */
+    vector<Point> S = {Point(1,1), Point(2,2), Point(3,3), Point(4,3), Point(4,2), Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
 
-    h.reserve( ha.size() + hb.size()); // preallocate memory
-    h.insert( h.end(), ha.begin(), ha.end() );
-    h.insert( h.end(), hb.begin(), hb.end() );
-    std::vector<Point> convex = convex_hull(h);
+    S = divideAndConquer(S);
+    cout<<endl;
+    cout<<"RESULT:"<<endl;
+    for(int i=0;i<S.size();i++) S[i].print();
 
-    for(int i=0; i<convex.size();i++)
-    {
-        convex[i].print();
-    }
+    /* TESTES PARA DETECTAR TANGENTES INFERIOR E SUPERIOR */
+//    vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
+//    vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2), Point(5,1)};
+//    int ha_length = 6;
+//    int hb_length = 6;
+//
+//    std::pair<int,int> tangents_indexes = higherTangent(ha,hb);
+//
+//    cout<<"t_i [0] = "<<tangents_indexes.first<<endl;
+//    cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
+//    ha[tangents_indexes.first].print();
+//    hb[tangents_indexes.second].print();
     return 0;
 }
