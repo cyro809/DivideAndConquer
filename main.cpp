@@ -164,69 +164,73 @@ std::pair<int,int> higherTangent(vector<Point> ha, vector<Point> hb)
     return idxs;
 }
 
-Point *mergeHull(Point *ha, Point* hb, int ha_length)
+vector<Point> convexHull(vector<Point> H)
 {
-    Point *merged_hull;
+    /*
+    Função pra eliminar os pontos dentro da área
+    */
+    return H;
+}
 
+vector<Point> mergeHull(vector<Point> ha, vector<Point> hb)
+{
+    std::vector<Point> hull;
+    hull.reserve( ha.size() + hb.size()); // preallocate memory
 
+    hull.insert( hull.end(), ha.begin(), ha.end() );
+    hull.insert( hull.end(), hb.begin(), hb.end() );
+
+    std::vector<Point> merged_hull = convexHull(hull);
 
     return merged_hull;
 }
 
 
-void divideAndConquer(Point *points, int points_length)
+vector<Point> divideAndConquer(vector<Point> points)
 {
-    int lower_tangent_points[2];
-    if(points_length > 3)
+    vector<Point> HA;
+    vector<Point> HB;
+    vector<Point> S;
+
+    if(points.size() > 3)
     {
-        int ha_length = points_length/2;
-        Point ha[ha_length];
+        int max_x = points[points.size()-1].x;
+        int min_x = points[0].x;
+        int splitter = (max_x + min_x)/2;
 
-        Point *hb;
-        int hb_length = points_length/2;
-
-        Point *convex_hull;
-
-        if(points_length%2 == 0)
+        for(int i=0;i<points.size();i++)
         {
-            hb = new Point[hb_length];
-        }
-        else
-        {
-            hb_length++;
-            hb = new Point[hb_length];
-        }
-
-
-        int b = 0;
-        for(int i=0;i<points_length;i++)
-        {
-            if(i < points_length/2)
+            if(points[i].x < splitter)
             {
-                ha[i] = points[i];
-                ha[i].print();
+                HA.push_back(points[i]);
             }
             else
             {
-                hb[b] = points[i];
-                hb[b].print();
-                b++;
+                HB.push_back(points[i]);
             }
         }
-        cout<<endl;
-        divideAndConquer(ha,ha_length);
 
+
+        HA = divideAndConquer(HA);
+        cout<<"HA:"<<endl;
+        for(int i=0;i<HA.size();i++) HA[i].print();
+
+        HB = divideAndConquer(HB);
+        cout<<"HB:"<<endl;
+        for(int i=0;i<HB.size();i++) HB[i].print();
+        S = mergeHull(HA,HB);
         cout<<endl;
-        divideAndConquer(hb,hb_length);
-        //lower_tangent_points = lowerTangent(ha,hb,ha_length);
-        // convex_hull = mergeHull(ha,hb,ha_length);
+        return S;
         /* Merge Hull HA and HB,
            compute Upper and Lower Tangents
            discard all points between these to tangents */
     }
     else
     {
-        // return points;
+        cout<<"S:"<<endl;
+        for(int i=0;i<points.size();i++) points[i].print();
+        cout<<endl;
+        return points;
     }
 
 
@@ -235,20 +239,23 @@ void divideAndConquer(Point *points, int points_length)
 
 int main()
 {
-    //Point ps[] = {Point(1,2), Point(2,2), Point(2,1), Point(1,1), Point(3,3)};
-    //int length = 5;
-    //divideAndConquer(ps,length);
+    /* TESTE PARA DIVIDE AND CONQUER */
+    vector<Point> S = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
 
-    vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
-    vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2), Point(5,1)};
-    int ha_length = 6;
-    int hb_length = 6;
+    S = divideAndConquer(S);
+    for(int i=0;i<S.size();i++) S[i].print();
 
-    std::pair<int,int> tangents_indexes = higherTangent(ha,hb);
-
-    cout<<"t_i [0] = "<<tangents_indexes.first<<endl;
-    cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
-    ha[tangents_indexes.first].print();
-    hb[tangents_indexes.second].print();
+    /* TESTES PARA DETECTAR TANGENTES INFERIOR E SUPERIOR */
+//    vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
+//    vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2), Point(5,1)};
+//    int ha_length = 6;
+//    int hb_length = 6;
+//
+//    std::pair<int,int> tangents_indexes = higherTangent(ha,hb);
+//
+//    cout<<"t_i [0] = "<<tangents_indexes.first<<endl;
+//    cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
+//    ha[tangents_indexes.first].print();
+//    hb[tangents_indexes.second].print();
     return 0;
 }
