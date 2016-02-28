@@ -1,5 +1,7 @@
 #include <iostream>
 #include <utility>
+#include <vector>
+#include <algorithm>
 
 #define above(P,Vi,Vj)  (isLeft(P,Vi,Vj) > 0)
 #define below(P,Vi,Vj)  (isLeft(P,Vi,Vj) < 0)
@@ -164,15 +166,40 @@ std::pair<int,int> higherTangent(Point *ha, Point* hb, int ha_length, int hb_len
     return idxs;
 }
 
-Point *mergeHull(Point *ha, Point* hb, int ha_length)
+Point *mergeHull(Point *ha, Point* hb, int ha_length, int hb_length)
 {
     Point *merged_hull;
-
-
+    std::pair<int,int> high_tangent_indexes = higherTangent(ha,hb,ha_length, hb_length);
+    std::pair<int,int> low_tangent_indexes = lowerTangent(ha,hb,ha_length, hb_length);
+    Point extreme_ha_point = ha[0];
+    Point extreme_hb_point = hb[0];
 
     return merged_hull;
 }
 
+vector<Point> convex_hull(vector<Point> P)
+{
+	int n = P.size(), k = 0;
+	vector<Point> H(2*n);
+
+	// Sort points lexicographically
+	//sort(P.begin(), P.end());
+
+	// Build lower hull
+	for (int i = 0; i < n; ++i) {
+		while (k >= 2 && isLeft(H[k-2], H[k-1], P[i]) <= 0) k--;
+		H[k++] = P[i];
+	}
+
+	// Build upper hull
+	for (int i = n-2, t = k+1; i >= 0; i--) {
+		while (k >= t && isLeft(H[k-2], H[k-1], P[i]) <= 0) k--;
+		H[k++] = P[i];
+	}
+
+	H.resize(k);
+	return H;
+}
 
 void divideAndConquer(Point *points, int points_length)
 {
@@ -239,16 +266,26 @@ int main()
     //int length = 5;
     //divideAndConquer(ps,length);
 
-    Point ha[] = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
-    Point hb[] = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2), Point(5,1)};
-    int ha_length = 6;
-    int hb_length = 6;
+    std::vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,3), Point(4,2)};
+    std::vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
+    std::vector<Point> h;
+    int ha_length = 5;
+    int hb_length = 5;
+    h.reserve( ha.size() + hb.size()); // preallocate memory
+    h.insert( h.end(), ha.begin(), ha.end() );
+    h.insert( h.end(), hb.begin(), hb.end() );
+    std::vector<Point> convex = convex_hull(h);
 
-    std::pair<int,int> tangents_indexes = higherTangent(ha,hb,ha_length, hb_length);
+    for(int i=0; i<convex.size();i++)
+    {
+        convex[i].print();
+    }
 
-    cout<<"t_i [0] = "<<tangents_indexes.first<<endl;
-    cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
-    ha[tangents_indexes.first].print();
-    hb[tangents_indexes.second].print();
+    //std::pair<int,int> tangents_indexes = higherTangent(ha,hb,ha_length, hb_length);
+
+    //cout<<"t_i [0] = "<<tangents_indexes.first<<endl;
+    //cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
+    //ha[tangents_indexes.first].print();
+    //hb[tangents_indexes.second].print();
     return 0;
 }
