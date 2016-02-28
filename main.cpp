@@ -1,5 +1,6 @@
 #include <iostream>
 #include <utility>
+#include <vector>
 
 #define above(P,Vi,Vj)  (isLeft(P,Vi,Vj) > 0)
 #define below(P,Vi,Vj)  (isLeft(P,Vi,Vj) < 0)
@@ -22,7 +23,7 @@ float isLeft (Point P0, Point P1, Point P2)
     return (P1.x - P0.x)*(P2.y - P0.y) - (P2.x - P0.x)*(P1.y - P0.y);
 }
 
-int Rtangent_PointPolyC( Point P, int n, Point* V )
+int Rtangent_PointPolyC( Point P, int n, vector<Point> V )
 {
     // use binary search for large convex polygons
     int     a, b, c;            // indices for edge chain endpoints
@@ -65,7 +66,7 @@ int Rtangent_PointPolyC( Point P, int n, Point* V )
     }
 }
 
-int Ltangent_PointPolyC( Point P, int n, Point* V )
+int Ltangent_PointPolyC( Point P, int n, vector<Point> V )
 {
     // use binary search for large convex polygons
     int     a, b, c;            // indices for edge chain endpoints
@@ -108,12 +109,12 @@ int Ltangent_PointPolyC( Point P, int n, Point* V )
     }
 }
 
-std::pair<int,int> lowerTangent(Point *ha, Point* hb, int ha_length, int hb_length)
+std::pair<int,int> lowerTangent(vector<Point> ha, vector<Point> hb)
 {
-    int a;
-    a = Ltangent_PointPolyC(hb[0], ha_length, ha);
-    int b;
-    b = Rtangent_PointPolyC(ha[a], hb_length, hb);
+    int a = ha.size()-2;
+    //a = Ltangent_PointPolyC(hb[0], ha.size(), ha);
+    int b = 0;
+    //b = Rtangent_PointPolyC(ha[a], hb.size(), hb);
     bool done = false;
 
     while(!done)
@@ -122,12 +123,12 @@ std::pair<int,int> lowerTangent(Point *ha, Point* hb, int ha_length, int hb_leng
         while(isLeft(hb[b], ha[a], ha[a-1]) >= 0)
         {
             a--;
-            if(a == 0) a = ha_length - 1;
+            if(a == 0) a = ha.size() - 1;
         }
         while(isLeft(ha[a], hb[b], hb[b+1]) <= 0)
         {
             b++;
-            if(b == hb_length - 1) b = 0;
+            if(b == hb.size() - 1) b = 0;
             done = false;
         }
     }
@@ -136,12 +137,12 @@ std::pair<int,int> lowerTangent(Point *ha, Point* hb, int ha_length, int hb_leng
     return idxs;
 }
 
-std::pair<int,int> higherTangent(Point *ha, Point* hb, int ha_length, int hb_length)
+std::pair<int,int> higherTangent(vector<Point> ha, vector<Point> hb)
 {
     int a;
-    a = Rtangent_PointPolyC(hb[0], ha_length, ha);
+    a = Rtangent_PointPolyC(hb[0], ha.size(), ha);
     int b;
-    b = Ltangent_PointPolyC(ha[a], hb_length, hb);
+    b = Ltangent_PointPolyC(ha[a], hb.size(), hb);
     bool done = false;
     while(!done)
     {
@@ -150,14 +151,13 @@ std::pair<int,int> higherTangent(Point *ha, Point* hb, int ha_length, int hb_len
         while(isLeft(hb[b], ha[a], ha[a+1]) <= 0)
         {
             a++;
-            if (a == ha_length - 1) a = 0;
+            if (a == ha.size() - 1) a = 0;
         }
         while(isLeft(ha[a], hb[b], hb[b-1]) >= 0)
         {
             b--;
-            if (b == 0) b = hb_length - 1;
+            if (b == 0) b = hb.size() - 1;
             done = false;
-
         }
     }
     std::pair<int,int> idxs(a,b);
@@ -239,12 +239,12 @@ int main()
     //int length = 5;
     //divideAndConquer(ps,length);
 
-    Point ha[] = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
-    Point hb[] = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2), Point(5,1)};
+    vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
+    vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2), Point(5,1)};
     int ha_length = 6;
     int hb_length = 6;
 
-    std::pair<int,int> tangents_indexes = higherTangent(ha,hb,ha_length, hb_length);
+    std::pair<int,int> tangents_indexes = higherTangent(ha,hb);
 
     cout<<"t_i [0] = "<<tangents_indexes.first<<endl;
     cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
