@@ -111,6 +111,8 @@ int Ltangent_PointPolyC( Point P, int n, vector<Point> V )
 
 std::pair<int,int> lowerTangent(vector<Point> ha, vector<Point> hb)
 {
+    ha.push_back(ha[0]);
+    hb.push_back(hb[0]);
     int a = ha.size()-2;
     //a = Ltangent_PointPolyC(hb[0], ha.size(), ha);
     int b = 0;
@@ -132,20 +134,29 @@ std::pair<int,int> lowerTangent(vector<Point> ha, vector<Point> hb)
             done = false;
         }
     }
-    //int idxs[] = {a,b};
+
+    ha.pop_back();
+    hb.pop_back();
+
     std::pair<int,int> idxs(a,b);
     return idxs;
 }
 
 std::pair<int,int> higherTangent(vector<Point> ha, vector<Point> hb)
 {
+    ha.push_back(ha[0]);
+    hb.push_back(hb[0]);
     int a;
-    a = Rtangent_PointPolyC(hb[0], ha.size(), ha);
+    //a = Rtangent_PointPolyC(hb[0], ha.size(), ha);
+    a = 0;
     int b;
-    b = Ltangent_PointPolyC(ha[a], hb.size(), hb);
+    //b = Ltangent_PointPolyC(ha[a], hb.size(), hb);
+    b = hb.size() - 2;
     bool done = false;
+
     while(!done)
     {
+        cout << "entrou no while" << endl;
         done = true;
 
         while(isLeft(hb[b], ha[a], ha[a+1]) <= 0)
@@ -153,6 +164,7 @@ std::pair<int,int> higherTangent(vector<Point> ha, vector<Point> hb)
             a++;
             if (a == ha.size() - 1) a = 0;
         }
+        cout << "meio do while" << endl;
         while(isLeft(ha[a], hb[b], hb[b-1]) >= 0)
         {
             b--;
@@ -160,15 +172,50 @@ std::pair<int,int> higherTangent(vector<Point> ha, vector<Point> hb)
             done = false;
         }
     }
+
+    ha.pop_back();
+    hb.pop_back();
+
     std::pair<int,int> idxs(a,b);
     return idxs;
 }
 
-vector<Point> convexHull(vector<Point> H)
+int pointInsideTangents(Point lowerA, Point higherA, Point lowerB, Point higherB, Point P)
 {
-    /*
-    Função pra eliminar os pontos dentro da área
-    */
+    if (above(P, lowerA, lowerB) && below(P, higherA, higherB) &&
+        isLeft(P, lowerB, higherB) >= 0 && isLeft(P, higherA, lowerA) >= 0)
+        return 1;
+    return 0;
+}
+
+vector<Point> convexHull(vector<Point> H, vector<Point> ha, vector<Point> hb)
+{
+    cout << "entrou convexHull" << endl;
+    cout<<"HA:"<<endl;
+    for(int i=0;i<ha.size();i++) ha[i].print();
+    cout<<"HB:"<<endl;
+    for(int i=0;i<hb.size();i++) hb[i].print();
+
+    std::pair<int, int> idxHigherTangents = higherTangent(ha, hb);
+    cout << "calculou higher = " << idxHigherTangents.first <<" " <<
+            idxHigherTangents.second << endl;
+    std::pair<int, int> idxLowerTangents = lowerTangent(ha, hb);
+    cout << "calculou lower = " << idxLowerTangents.first <<" " <<
+            idxLowerTangents.second << endl;
+
+    for (int i = H.size()-1; i >= 0; i--)
+    {
+        cout << "indice convexHull " << i<< endl;
+        if (pointInsideTangents(ha[idxLowerTangents.first],
+                                ha[idxHigherTangents.first],
+                                hb[idxLowerTangents.second],
+                                hb[idxHigherTangents.second],
+                                H[i]))
+        {
+            cout << "removeu" << endl;
+            H.erase(H.begin()+i);
+        }
+    }
     return H;
 }
 
@@ -180,7 +227,7 @@ vector<Point> mergeHull(vector<Point> ha, vector<Point> hb)
     hull.insert( hull.end(), ha.begin(), ha.end() );
     hull.insert( hull.end(), hb.begin(), hb.end() );
 
-    std::vector<Point> merged_hull = convexHull(hull);
+    std::vector<Point> merged_hull = convexHull(hull, ha, hb);
 
     return merged_hull;
 }
@@ -221,9 +268,6 @@ vector<Point> divideAndConquer(vector<Point> points)
         S = mergeHull(HA,HB);
         cout<<endl;
         return S;
-        /* Merge Hull HA and HB,
-           compute Upper and Lower Tangents
-           discard all points between these to tangents */
     }
     else
     {
@@ -240,10 +284,34 @@ vector<Point> divideAndConquer(vector<Point> points)
 int main()
 {
     /* TESTE PARA DIVIDE AND CONQUER */
+    /*
     vector<Point> S = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
 
     S = divideAndConquer(S);
     for(int i=0;i<S.size();i++) S[i].print();
+    */
+
+    /*TESTE PARA calculo de Tangente com menos de 3 itens*/ //ESTÃ QUEBRANDO
+/*
+    vector<Point> ha = {Point(6,3)};
+    vector<Point> hb = {Point(7,4), Point(7,5), Point(8,2)};
+
+    vector<Point> S = mergeHull(ha, hb);
+    cout<<"S:"<<endl;
+    for(int i=0;i<S.size();i++) S[i].print();
+    cout<<endl;
+    */
+
+    /*TESTE PARA mergeHull e convexHull*/
+
+    vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3)};
+    vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
+    vector<Point> S = mergeHull(ha, hb);
+    cout<<"S:"<<endl;
+    for(int i=0;i<S.size();i++) S[i].print();
+    cout<<endl;
+
+
 
     /* TESTES PARA DETECTAR TANGENTES INFERIOR E SUPERIOR */
 //    vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
