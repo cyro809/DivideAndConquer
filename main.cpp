@@ -21,14 +21,14 @@ class Point
 };
 
 bool comparePoints (const Point p1, const Point p2)
-    {
-        if( p1.x < p2.x)
-            return 1;
-        else if(p1.x == p2.x){
-            return (p1.y > p2.y);
-        }
-        return 0;
+{
+    if( p1.x < p2.x)
+        return 1;
+    else if(p1.x == p2.x){
+        return (p1.y > p2.y);
     }
+    return 0;
+}
 
 float isLeft (Point P0, Point P1, Point P2)
 {
@@ -276,7 +276,7 @@ vector<Point> divideAndConquer(vector<Point> points)
                 HB.push_back(points[i]);
             }
         }
-
+        if(HA.size() == points.size() || HB.size() == points.size()) return points;
 
         HA = divideAndConquer(HA);
         cout<<"HA:"<<endl;
@@ -308,7 +308,7 @@ int main()
     int x,y;
     char delim;
     vector<Point> S;
-    for(int i=0;i<20;i++)
+    for(int i=0;i<30;i++)
     {
         inData>>x>>delim>>y;
         S.push_back(Point(x,y));
@@ -331,28 +331,5 @@ int main()
     cout<<endl;
 */
 
-    /*TESTE PARA mergeHull e convexHull*/
-/*
-    vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3)};
-    vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
-    vector<Point> S = mergeHull(ha, hb);
-    cout<<"S:"<<endl;
-    for(int i=0;i<S.size();i++) S[i].print();
-    cout<<endl;
-*/
-
-
-    /* TESTES PARA DETECTAR TANGENTES INFERIOR E SUPERIOR */
-//    vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
-//    vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2), Point(5,1)};
-//    int ha_length = 6;
-//    int hb_length = 6;
-//
-//    std::pair<int,int> tangents_indexes = higherTangent(ha,hb);
-//
-//    cout<<"t_i [0] = "<<tangents_indexes.first<<endl;
-//    cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
-//    ha[tangents_indexes.first].print();
-//    hb[tangents_indexes.second].print();
     return 0;
 }
