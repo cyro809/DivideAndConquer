@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <utility>
 #include <vector>
 
@@ -17,6 +18,16 @@ class Point
         double y;
 
 };
+
+bool comparePoints (const Point p1, const Point p2)
+    {
+        if( p1.x < p2.x)
+            return 1;
+        else if(p1.x == p2.x){
+            return (p1.y > p2.y);
+        }
+        return 0;
+    }
 
 float isLeft (Point P0, Point P1, Point P2)
 {
@@ -292,15 +303,16 @@ vector<Point> divideAndConquer(vector<Point> points)
 int main()
 {
     /* TESTE PARA DIVIDE AND CONQUER */
-    /*
-    vector<Point> S = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
+
+    vector<Point> S = {Point(8,2), Point(3,3), Point(2,2), Point(1,1),  Point(4,2), Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(4,3)};
+    std::sort(S.begin(),S.end(), comparePoints);
 
     S = divideAndConquer(S);
     for(int i=0;i<S.size();i++) S[i].print();
-    */
+
 
     /*TESTE PARA calculo de Tangente com menos de 3 itens*/ //ESTÁ QUEBRANDO
-
+/*
     vector<Point> hb = {Point(6,3)};
     vector<Point> ha = {Point(3,5), Point(4,2), Point(5,3)};
 
@@ -308,7 +320,7 @@ int main()
     cout<<"S:"<<endl;
     for(int i=0;i<S.size();i++) S[i].print();
     cout<<endl;
-
+*/
 
     /*TESTE PARA mergeHull e convexHull*/
 /*
