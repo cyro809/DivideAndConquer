@@ -124,17 +124,20 @@ std::pair<int,int> lowerTangent(vector<Point> ha, vector<Point> hb)
         done = true;
         while(isLeft(hb[b], ha[a], ha[a-1]) >= 0)
         {
+            if(ha.size() == 2)break;
             a--;
             if(a == 0) a = ha.size() - 1;
         }
         while(isLeft(ha[a], hb[b], hb[b+1]) <= 0)
         {
+            if(hb.size() == 2)break;
             b++;
             if(b == hb.size() - 1) b = 0;
             done = false;
         }
     }
-
+    if(b == hb.size() - 1) b = 0;
+    if(a == ha.size() - 1) a = 0;
     ha.pop_back();
     hb.pop_back();
 
@@ -161,17 +164,22 @@ std::pair<int,int> higherTangent(vector<Point> ha, vector<Point> hb)
 
         while(isLeft(hb[b], ha[a], ha[a+1]) <= 0)
         {
+            if(ha.size() == 2)break;
             a++;
             if (a == ha.size() - 1) a = 0;
         }
         cout << "meio do while" << endl;
         while(isLeft(ha[a], hb[b], hb[b-1]) >= 0)
         {
+            if(hb.size() == 2)break;
             b--;
             if (b == 0) b = hb.size() - 1;
             done = false;
         }
     }
+
+    if(b == hb.size() - 1) b = 0;
+    if(a == ha.size() - 1) a = 0;
 
     ha.pop_back();
     hb.pop_back();
@@ -292,25 +300,25 @@ int main()
     */
 
     /*TESTE PARA calculo de Tangente com menos de 3 itens*/ //ESTÁ QUEBRANDO
-/*
-    vector<Point> ha = {Point(6,3)};
-    vector<Point> hb = {Point(7,4), Point(7,5), Point(8,2)};
+
+    vector<Point> hb = {Point(6,3)};
+    vector<Point> ha = {Point(3,5), Point(4,2), Point(5,3)};
 
     vector<Point> S = mergeHull(ha, hb);
     cout<<"S:"<<endl;
     for(int i=0;i<S.size();i++) S[i].print();
     cout<<endl;
-    */
+
 
     /*TESTE PARA mergeHull e convexHull*/
-
+/*
     vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3)};
     vector<Point> hb = {Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
     vector<Point> S = mergeHull(ha, hb);
     cout<<"S:"<<endl;
     for(int i=0;i<S.size();i++) S[i].print();
     cout<<endl;
-
+*/
 
 
     /* TESTES PARA DETECTAR TANGENTES INFERIOR E SUPERIOR */
