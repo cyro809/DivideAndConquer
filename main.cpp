@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <fstream>
 #include <utility>
 #include <vector>
 
@@ -266,7 +267,7 @@ vector<Point> divideAndConquer(vector<Point> points)
 
         for(int i=0;i<points.size();i++)
         {
-            if(points[i].x < splitter)
+            if(points[i].x <= splitter)
             {
                 HA.push_back(points[i]);
             }
@@ -303,8 +304,16 @@ vector<Point> divideAndConquer(vector<Point> points)
 int main()
 {
     /* TESTE PARA DIVIDE AND CONQUER */
+    ifstream inData("input.txt");
+    int x,y;
+    char delim;
+    vector<Point> S;
+    for(int i=0;i<20;i++)
+    {
+        inData>>x>>delim>>y;
+        S.push_back(Point(x,y));
+    }
 
-    vector<Point> S = {Point(8,2), Point(3,3), Point(2,2), Point(1,1),  Point(4,2), Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(4,3)};
     std::sort(S.begin(),S.end(), comparePoints);
 
     S = divideAndConquer(S);
