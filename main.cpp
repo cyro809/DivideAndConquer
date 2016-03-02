@@ -1,4 +1,6 @@
 #include <iostream>
+#include <algorithm>
+#include <fstream>
 #include <utility>
 #include <vector>
 
@@ -17,6 +19,16 @@ class Point
         double y;
 
 };
+
+bool comparePoints (const Point p1, const Point p2)
+{
+    if( p1.x < p2.x)
+        return 1;
+    else if(p1.x == p2.x){
+        return (p1.y < p2.y);
+    }
+    return 0;
+}
 
 float isLeft (Point P0, Point P1, Point P2)
 {
@@ -170,7 +182,7 @@ vector<Point> convexHull(vector<Point> P)
 	vector<Point> H(2*n);
 
 	// Sort points lexicographically
-	//sort(P.begin(), P.end());
+	sort(P.begin(), P.end(), comparePoints);
 
 	// Build lower hull
 	for (int i = 0; i < n; ++i) {
@@ -216,7 +228,7 @@ vector<Point> divideAndConquer(vector<Point> points)
 
         for(int i=0;i<points.size();i++)
         {
-            if(points[i].x < splitter)
+            if(points[i].x <= splitter)
             {
                 HA.push_back(points[i]);
             }
@@ -225,7 +237,7 @@ vector<Point> divideAndConquer(vector<Point> points)
                 HB.push_back(points[i]);
             }
         }
-
+        if(HA.size() == points.size() || HB.size() == points.size()) return points;
 
         HA = divideAndConquer(HA);
         cout<<"HA:"<<endl;
@@ -236,6 +248,7 @@ vector<Point> divideAndConquer(vector<Point> points)
         for(int i=0;i<HB.size();i++) HB[i].print();
         S = mergeHull(HA,HB);
         cout<<endl;
+        return S;
     }
     else
     {
@@ -252,12 +265,29 @@ vector<Point> divideAndConquer(vector<Point> points)
 int main()
 {
     /* TESTE PARA DIVIDE AND CONQUER */
-    vector<Point> S = {Point(1,1), Point(2,2), Point(3,3), Point(4,3), Point(4,2), Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
+
+    ifstream inData("input.txt");
+    int x,y;
+    char delim;
+    vector<Point> S;
+    for(int i=0;i<30;i++)
+    {
+        inData>>x>>delim>>y;
+        S.push_back(Point(x,y));
+    }
+
+    std::sort(S.begin(),S.end(), comparePoints);
 
     S = divideAndConquer(S);
-    cout<<endl;
-    cout<<"RESULT:"<<endl;
     for(int i=0;i<S.size();i++) S[i].print();
+
+    /* TESTE PARA DIVIDE AND CONQUER */
+    // vector<Point> S = {Point(1,1), Point(2,2), Point(3,3), Point(4,3), Point(4,2), Point(5,1), Point(6,3), Point(7,4), Point(7,5), Point(8,2)};
+    //
+    // S = divideAndConquer(S);
+    // cout<<endl;
+    // cout<<"RESULT:"<<endl;
+    // for(int i=0;i<S.size();i++) S[i].print();
 
     /* TESTES PARA DETECTAR TANGENTES INFERIOR E SUPERIOR */
 //    vector<Point> ha = {Point(1,1), Point(2,2), Point(3,3), Point(4,2), Point(4,3), Point(1,1)};
