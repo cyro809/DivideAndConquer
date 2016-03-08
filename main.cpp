@@ -3,6 +3,8 @@
 #include <fstream>
 #include <utility>
 #include <vector>
+#include <allegro5/allegro.h>
+#include <allegro5/allegro_primitives.h>
 
 #define above(P,Vi,Vj)  (isLeft(P,Vi,Vj) > 0)
 #define below(P,Vi,Vj)  (isLeft(P,Vi,Vj) < 0)
@@ -269,7 +271,7 @@ int main()
     ifstream inData("input.txt");
     int x,y;
     char delim;
-    vector<Point> S;
+    vector<Point> S, initialS;
     for(int i=0;i<30;i++)
     {
         inData>>x>>delim>>y;
@@ -277,6 +279,7 @@ int main()
     }
 
     std::sort(S.begin(),S.end(), comparePoints);
+    initialS = S;
 
     S = divideAndConquer(S);
     for(int i=0;i<S.size();i++) S[i].print();
@@ -301,5 +304,34 @@ int main()
 //    cout<<"t_i [1] = "<<tangents_indexes.second<<endl;
 //    ha[tangents_indexes.first].print();
 //    hb[tangents_indexes.second].print();
+
+    ALLEGRO_DISPLAY *display = NULL;
+    if (!al_init()) {
+        fprintf(stderr, "failed to initialize allegro!\n");
+        return -1;
+    }
+    al_init_primitives_addon();
+
+    display = al_create_display(200,200);
+    al_clear_to_color(al_map_rgb(255,255,255));
+    int offset = 50, i;
+
+    for(i=0;i<initialS.size();i++) {
+        al_draw_filled_circle(initialS[i].x + offset, initialS[i].y + offset, 3, al_map_rgb(0,0,0));
+    }
+
+    for (i = 0; i < S.size() - 1; i++) {
+        al_draw_line(S[i].x + offset, S[i].y + offset,
+            S[i+1].x + offset, S[i+1].y + offset, al_map_rgb(255,0,0), 2);
+    }
+    al_draw_line(S[i].x + offset, S[i].y + offset,
+        S[0].x + offset, S[0].y + offset, al_map_rgb(255,0,0), 2);
+
+
+    al_flip_display();
+    al_rest(30.0);
+    al_shutdown_primitives_addon();
+    al_destroy_display(display);
+
     return 0;
 }
