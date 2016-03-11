@@ -22,7 +22,7 @@ class Point
 
 };
 
-bool comparePoints (const Point p1, const Point p2)
+bool comparePoints (const Point &p1, const Point &p2)
 {
     if( p1.x < p2.x)
         return 1;
@@ -32,7 +32,7 @@ bool comparePoints (const Point p1, const Point p2)
     return 0;
 }
 
-float isLeft (Point P0, Point P1, Point P2)
+float isLeft (const Point &P0, const Point &P1, const Point &P2)
 {
     return (P1.x - P0.x)*(P2.y - P0.y) - (P2.x - P0.x)*(P1.y - P0.y);
 }
@@ -178,7 +178,7 @@ std::pair<int,int> higherTangent(vector<Point> ha, vector<Point> hb)
     return idxs;
 }
 
-vector<Point> convexHull(vector<Point> P)
+vector<Point> convexHull(vector<Point> &P)
 {
     int n = P.size(), k = 0;
 	vector<Point> H(2*n);
@@ -202,7 +202,7 @@ vector<Point> convexHull(vector<Point> P)
 	return H;
 }
 
-vector<Point> mergeHull(vector<Point> ha, vector<Point> hb)
+vector<Point> mergeHull(vector<Point> &ha, vector<Point> &hb)
 {
     std::vector<Point> hull;
     hull.reserve( ha.size() + hb.size()); // preallocate memory
@@ -216,7 +216,7 @@ vector<Point> mergeHull(vector<Point> ha, vector<Point> hb)
 }
 
 
-vector<Point> divideAndConquer(vector<Point> points)
+vector<Point> divideAndConquer(vector<Point> &points)
 {
     vector<Point> HA;
     vector<Point> HB;
